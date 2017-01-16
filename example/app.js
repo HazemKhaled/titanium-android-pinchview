@@ -1,65 +1,105 @@
-// This is a test harness for your module
-// You should do something interesting in this harness 
-// to test out the module and to provide instructions 
-// to users on how to use it by example.
-
-var startX, startY, startLeft, startTop;
+var zoomScale = 1,
+    startZoom = zoomScale;
 
 // open a single window
 var window = Ti.UI.createWindow({
-	backgroundColor:'black'
+    backgroundColor: 'black'
 });
 
+var rootView = Ti.UI.createView({
+    backgroundColor: 'green'
+});
+window.add(rootView);
 
-// TODO: write your module tests here
 var multitouch = require('jp.co.so2.pinch');
 
 var pinchView = multitouch.createPinchView({
-	top:0,
-	left:0,
-	width:Ti.Platform.displayCaps.platformWidth,
-	height:Ti.Platform.displayCaps.platformHeight,
-	backgroundColor:'transparent',
-	minZoomValue:0.5,
-	maxZoomValue:1
+    //top: 0,
+    //left: 0,
+    //width: Ti.Platform.displayCaps.platformWidth,
+    //height: Ti.Platform.displayCaps.platformHeight,
+    //backgroundColor: 'transparent',
+    minZoomValue: 0.5,
+    maxZoomValue: 1
+});
+rootView.add(pinchView);
+
+var zoomView = Ti.UI.createImageView({
+    image: "map.png",
+    top: 0,
+    left: 0,
+    width: 733,
+    height: 733,
+    //backgroundColor: 'white',
+    touchEnabled: false
 });
 
-var view = Ti.UI.createView({
-	top:0,
-	left:0,
-	width:Ti.Platform.displayCaps.platformWidth / 2,
-	height:Ti.Platform.displayCaps.platformHeight / 2,
-	backgroundColor:'white',
-	touchEnabled:false
+zoomView.addEventListener('singletap', function(e) {
+    alert(e.x + ' ||| ' + e.y);
 });
-window.add(view);
-window.add(pinchView);
-window.open();
+rootView.add(zoomView);
 
-pinchView.addEventListener('pinch',function(e) {
-	var oldWidth = view.width;
-	var oldHeight = view.height;
-	view.width = Ti.Platform.displayCaps.platformWidth / 2 * e.scale;
-	view.height = Ti.Platform.displayCaps.platformHeight / 2 * e.scale;
-	var deltaWidth = view.width - oldWidth;
-	var deltaHeight = view.height - oldHeight;
-	view.left -= deltaWidth / 2;
-	view.top -= deltaHeight / 2;
+
+pinchView.addEventListener('touchstart', function(e) {
+
+    // Get scale init scale
+    startZoom = zoomScale;
+});
+
+pinchView.addEventListener('colorChange', function(e) {
+    //console.log(e.scale)
+    for (var key in e) {
+        console.log(key);
+    }
+});
+pinchView.addEventListener('pinch1', function(e) {
+    //console.log(e.scale)
+    for (var key in e) {
+        console.log(key);
+    }
+});
+pinchView.addEventListener('pinch', function(e) {
+
+    zoomScale = e.scale * startZoom;
+
+    // Scale
+    zoomView.applyProperties({
+        scaleX: zoomScale,
+        scaleY: zoomScale
+    });
 });
 
 pinchView.addEventListener('multiStart', function(e) {
-	startX = view.left;
-	startY = view.top;
+    //console.log(e);
 });
 
-pinchView.addEventListener('multiMove',function(e) {
-	view.left += e.x;
-	view.top += e.y;
-	startLeft = view.left;
-	startTop = view.top;
+pinchView.addEventListener('multiMove', function(e) {
+    zoomView.applyProperties({
+        left: zoomView.left + (e.x / 3),
+        top: zoomView.top + (e.y / 3)
+    });
 });
 
-pinchView.addEventListener('doubletap', function(e) {
-	Ti.API.debug("DOUBLE TAP");
-});
+//FIXME: app crash on doubletap
+/*pinchView.addEventListener('doubletap', function(e) {
+    //console.log(e);
+});*/
 
+
+// Add some child view
+for (var i = 0; i <= 7; i++) {
+    var btn = Ti.UI.createButton({
+        top: 100 * i,
+        left: 100 * i,
+        backgroundColor: 'red',
+        width: 40,
+        height: 40,
+        title: '!!'
+    });
+    btn.addEventListener('click', function(e) {
+        alert(e);
+    })
+    zoomView.add(btn);
+}
+
+window.open();
